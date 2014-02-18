@@ -1,0 +1,133 @@
+#!/usr/bin/perl
+#
+# Author : Alexi Langlade
+# Inspired by Rodolphe Quiedeville(2006) & Andreas Buer(2004)
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; version 2 dated June,
+# 1991.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# Parameters:
+#
+#   config
+#   autoconf
+#
+# Configuration variables
+#
+#   mysqlopts     - Options to pass to mysql
+#   mysqladmin    - Override location of mysqladmin
+#
+#%# family=auto
+#%# capabilities=autoconf
+
+use strict;
+
+my $MYSQLADMIN = $ENV{mysqladmin} || "mysqladmin";
+my $COMMAND    = "$MYSQLADMIN $ENV{mysqlopts} extended-status";
+my $COMMANDSIZE = "$MYSQLADMIN $ENV{mysqlopts} variables";
+
+my %WANTED = ( "query_cache_size" => "Query Cache Size",
+            "Qcache_free_memory" => "Qcache Free Memory",
+            "Qcache_total_blocks" => "Qcache Total Blocks",
+            "Qcache_free_blocks" => "Qcache Free Blocks");
+
+my %WANTEDDRAW = ("query_cache_size" => "AREA",
+                "Qcache_free_memory" => "STACK",
+                "Qcache_total_blocks" => "AREA",
+                "Qcache_free_blocks" => "STACK");
+
+my $arg = shift();
+
+if ($arg eq 'config') {
+	print_config();
+	exit();
+} elsif ($arg eq 'autoconf') {
+	unless (test_service() ) {
+		print "yes\n";
+	} else {
+		print "no\n";
+	}
+	exit;
+}
+
+open(SERVICE, "$COMMAND |")
+	or die("Could not execute '$COMMAND': $!");
+
+while(<SERVICE>) {
+	my ($k, $v) = (m/(\w+).*?(\d+(?:\.\d+)?)/);
+	next unless($k); 	
+	if(exists $WANTED{$k}) {
+		print("$k.value $v\n");
+		delete $WANTED{$k};
+	}
+}
+
+close(SERVICE);
+
+open (SERVICE, "$COMMANDSIZE |")
+	or die("Could not execute '$COMMANDSIZE': $!");
+
+while(<SERVICE>) {
+	my ($k, $v) = (m/(\w+).*?(\d+(?:\.\d+)?)/);
+	next unless($k);
+	if(exists $WANTED{$k}) {
+		print ("$k.value $v\n");
+	}
+}
+
+close(SERVICE);
+
+sub print_config {
+
+    print('graph_title MySQL Queries Cache Memory
+graph_args --base 1000
+graph_vlabel queries
+graph_category mysql
+graph_info The MySQL Query Cache Memory graph shows information on the query cache’s memory usage: total size, free memory, total blocks and free blocks. Blocks are not of a uniform size, despite the name.
+');
+
+    for my $key (keys %WANTED) {
+        print("$key.label $WANTED{$key}\n",
+              "$key.min 0\n",
+              "$key.type DERIVE\n",
+              "$key.max 100000000\n",
+              "$key.draw ".$WANTEDDRAW{$key}."\n",
+             );
+    }
+}
+
+
+sub test_service {
+
+    my $return = 1;
+
+    system ("$MYSQLADMIN --version >/dev/null 2>/dev/null");
+    if ($? == 0)
+    {
+		system ("$COMMAND >/dev/null 2>/dev/null");
+		if ($? == 0)
+		{
+		    print "yes\n";
+		    $return = 0;
+		}
+		else
+		{
+		    print "no (could not connect to mysql)\n";
+		}
+    }
+    else
+    {
+	print "no (mysqladmin not found)\n";
+    }
+    exit $return;
+}
