@@ -1,0 +1,25 @@
+#!/bin/bash
+
+statusfile="/tmp/opcache-keys.txt"
+
+SCRIPT_NAME=/munin-opcache.php
+SCRIPT_FILENAME=/var/www/html/munin-opcache.php
+QUERY_STRING="what=keys"
+REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 > $statusfile 2>/dev/null
+
+if [ "$1" = "config" ]; then
+    pool=$(awk '/pool/{print $2}' $statusfile)
+    echo "graph_title OPCache Keys"
+    echo "graph_vlabel keys"
+    echo "graph_category opcache"
+    echo "cached_keys.label Number of Cached Keys"
+    echo "free_keys.label Number of Keys Available"
+        exit 0
+else
+    awk '
+    /^cached_keys.value/ {print "cached_keys.value " $2}
+    /^free_keys.value/{print "free_keys.value " $2}
+    ' < $statusfile
+fi
+
+rm -f $statusfile

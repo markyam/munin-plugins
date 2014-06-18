@@ -1,0 +1,27 @@
+#!/bin/bash
+
+statusfile="/tmp/opcache-memory.txt"
+
+SCRIPT_NAME=/munin-opcache.php
+SCRIPT_FILENAME=/var/www/html/munin-opcache.php
+QUERY_STRING="what=memory"
+REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 > $statusfile 2>/dev/null
+
+if [ "$1" = "config" ]; then
+    pool=$(awk '/pool/{print $2}' $statusfile)
+    echo "graph_title OPCache Memory Usage"
+    echo "graph_vlabel memory"
+    echo "graph_category opcache"
+    echo "used_memory.label OPCache Memory Used"
+    echo "free_memory.label OPCache Memory Available"
+    echo "wasted_memory.label OPCache Memory Wasted"
+        exit 0
+else
+    awk '
+    /^used_memory.value/ {print "used_memory.value " $2}
+    /^free_memory.value/{print "free_memory.value " $2}
+    /^wasted_memory.value/{print "wasted_memory.value " $2}
+    ' < $statusfile
+fi
+
+rm -f $statusfile

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+statusfile="/tmp/opcache-hits.txt"
+
+SCRIPT_NAME=/munin-opcache.php
+SCRIPT_FILENAME=/var/www/html/munin-opcache.php
+QUERY_STRING="what=hits"
+REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 > $statusfile 2>/dev/null
+
+if [ "$1" = "config" ]; then
+    pool=$(awk '/pool/{print $2}' $statusfile)
+    echo "graph_title OPCache Hits"
+    echo "graph_vlabel hits"
+    echo "graph_category opcache"
+    echo "opcache_hits.label OPCache Hits"
+    echo "opcache_hits.type DERIVE"
+    echo "opcache_hits.min 0"
+    echo "opcache_hits.draw LINE2"
+    echo "opcache_misses.label OPCache Misses"
+    echo "opcache_misses.type DERIVE"
+    echo "opcache_misses.min 0"
+    echo "opcache_misses.draw LINE2"
+        exit 0
+else
+    awk '
+    /^opcache_hits.value/ {print "opcache_hits.value " $2}
+    /^opcache_misses.value/{print "opcache_misses.value " $2}
+    ' < $statusfile
+fi
+
+rm -f $statusfile
