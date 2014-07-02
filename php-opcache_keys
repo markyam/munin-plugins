@@ -2,10 +2,7 @@
 
 statusfile="/tmp/opcache-keys.txt"
 
-SCRIPT_NAME=/munin-opcache.php
-SCRIPT_FILENAME=/var/www/html/munin-opcache.php
-QUERY_STRING="what=keys"
-REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 > $statusfile 2>/dev/null
+SCRIPT_NAME=/munin-opcache.php SCRIPT_FILENAME=/var/www/html/munin-opcache.php QUERY_STRING="what=keys" REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 > $statusfile 2>/dev/null
 
 if [ "$1" = "config" ]; then
     pool=$(awk '/pool/{print $2}' $statusfile)
