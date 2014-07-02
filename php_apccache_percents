@@ -1,0 +1,33 @@
+#!/bin/bash
+
+statusfile="/tmp/apccache-percents.txt"
+
+SCRIPT_NAME=/munin-apccache.php SCRIPT_FILENAME=/usr/share/munin/plugins/munin-apccache.php QUERY_STRING="what=percents" REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 > $statusfile 2> /dev/null
+
+if [ "$1" = "config" ]; then
+    pool=$(awk '/pool/{print $2' $statusfile)
+    echo "graph_title APC Cache Percents"
+    echo "graph_vlabel percents"
+    echo "graph_category apccache"
+    echo "hits.label APC Cache Hits percents"
+    echo "hits.min 0"
+    echo "hits.draw AREA"
+    echo "misses.label APC Cache Misses percents"
+    echo "misses.min 0"
+    echo "misses.warning 50"
+    echo "misses.draw STACK"
+    echo "memory.label APC Cache Memory percents"
+    echo "memory.min 0"
+    echo "memory.warning 95"
+    echo "memory.critical 98"
+    echo "memory.draw LINE2"
+        exit 0
+else
+    awk '
+    /^hits.value/ {print "hits.value " $2}
+    /^misses.value/{print "misses.value " $2}
+    /^memory.value/{print "memory.value " $2}
+    ' < $statusfile
+fi
+
+rm -f $statusfile
