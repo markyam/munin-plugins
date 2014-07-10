@@ -5,7 +5,7 @@ statusfile="/tmp/apccache-memory.txt"
 SCRIPT_NAME=/munin-apccache.php SCRIPT_FILENAME=/usr/share/munin/plugins/munin-apccache.php QUERY_STRING="what=memory" REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 > $statusfile 2> /dev/null
 
 if [ "$1" = "config" ]; then
-    pool=$(awk '/pool/{print $2' $statusfile)
+    pool=$(awk '/pool/{print $2}' $statusfile)
     echo "graph_title APC Cache Memory Usage"
     echo "graph_vlabel memory"
     echo "graph_category apccache"
