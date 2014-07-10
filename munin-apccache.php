@@ -139,9 +139,20 @@ function munin_apccache_get_data()
     $info['apccache_misses'] = $status['num_misses'];
     $info['apccache_hits']   = $status['num_hits'];
 
-    $info['memory'] = 100 - ( ( $status['avail_mem'] / $status['seg_size'] ) *100 );
-    $info['hits'] = ( $status['num_hits'] / ( $status['num_hits'] + $status['num_misses'] ) ) * 100;
-    $info['misses'] = ( $status["num_misses"] / ( $status["num_hits"] + $status["num_misses"] ) ) * 100;
+    if ( $status['seg_size'] > 0 )
+    {
+        $info['memory'] = 100 - ( ( $status['avail_mem'] / $status['seg_size'] ) *100 );
+    }
+    
+    if ( ( $status['num_hits'] + $status['num_misses'] ) > 0 ) 
+    {
+        $info['hits'] = ( $status['num_hits'] / ( $status['num_hits'] + $status['num_misses'] ) ) * 100;    
+    }
+
+    if ( ( $status["num_hits"] + $status["num_misses"] ) > 0 )
+    {
+        $info['misses'] = ( $status["num_misses"] / ( $status["num_hits"] + $status["num_misses"] ) ) * 100;
+    }
 
     return $info;
 }
