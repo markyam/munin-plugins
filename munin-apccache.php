@@ -34,16 +34,16 @@ $CONFIG_DATA_TYPES = array(
                             "apccache_misses.min"   => '0',
                             "apccache_misses.draw"  => 'LINE2',
                         ),
-    "percents"  => array(   "hits.label" => 'APC Cache Hits Percents'
+    "percents"  => array(   "hits.label" => 'APC Cache Hits Percents',
                             "hits.min"   => '0',
                             "hits.draw"  => 'AREA',
 
-                            "misses.label"    => 'APC Cache Misses Percents'
+                            "misses.label"    => 'APC Cache Misses Percents',
                             "misses.min"      => '0',
                             "misses.warnings" => '50',
                             "misses.draw"     => 'STACK',
 
-                            "memory.label"    => 'APC Cache Memory Percents'
+                            "memory.label"    => 'APC Cache Memory Percents',
                             "memory.min"      => '0',
                             "memory.warnings" => '95',
                             "memory.critical" => '98',
@@ -51,7 +51,8 @@ $CONFIG_DATA_TYPES = array(
                         )
 );
 
-$what = $_GET["what"];
+//$what = $_GET["what"];
+$what = "hits";
 
 if ( isset ( $_GET["config"] ) ) munin_apccache_print_config( $what );
 else munin_apccache_print_data( $what );
@@ -131,13 +132,15 @@ function munin_apccache_get_data()
 
     //Get APC Cache statistics
     $status = apc_sma_info();
+    $cache_mode = 'opmode';
+    $cache = apc_cache_info($cache_mode);
 
     $info['memory_size'] = $status['num_seg']*$status['seg_size'];
     $info['memory_free'] = $status['avail_mem'];
     $info['memory_used'] = $info['memory_size'] - $info['memory_free'];
 
-    $info['apccache_misses'] = $status['num_misses'];
-    $info['apccache_hits']   = $status['num_hits'];
+    $info['apccache_misses'] = $cache['num_misses'];
+    $info['apccache_hits']   = $cache['num_hits'];
 
     if ( $status['seg_size'] > 0 )
     {

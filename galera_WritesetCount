@@ -35,8 +35,8 @@ use strict;
 my $MYSQLADMIN = $ENV{mysqladmin} || "mysqladmin";
 my $COMMAND    = "$MYSQLADMIN $ENV{mysqlopts} extended-status";
 
-my %WANTED = ("wsrep_replicated" => "Wsrep Replicated",
-				"wsrep_received" => "Wsrep Received");
+my %WANTED = ("wsrep_received" => "Wsrep Received",
+			"wsrep_replicated" => "Wsrep Replicated");
 
 my $arg = shift();
 

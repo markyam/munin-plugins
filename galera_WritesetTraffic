@@ -35,8 +35,8 @@ use strict;
 my $MYSQLADMIN = $ENV{mysqladmin} || "mysqladmin";
 my $COMMAND    = "$MYSQLADMIN $ENV{mysqlopts} extended-status";
 
-my %WANTED = ("wsrep_replicated_bytes" => "Wsrep Replicated Bytes",
-				"wsrep_received_bytes" => "Wsrep Received Bytes");
+my %WANTED = ("wsrep_received_bytes" => "Wsrep Received Bytes",
+			"wsrep_replicated_bytes" => "Wsrep Replicated Bytes");
 
 my $arg = shift();
 
